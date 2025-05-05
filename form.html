@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Frametrack – Shooting-Formular</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background: #f9f9f9;
+    }
+
+    form {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      max-width: 700px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.6rem;
+      margin-top: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    .checkbox-container input {
+      width: auto;
+      margin-right: 0.5rem;
+    }
+
+    .row {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .row > div {
+      flex: 1;
+    }
+
+    #preis::after {
+      content: " €";
+    }
+
+    .comments button {
+      margin-top: 0.5rem;
+    }
+
+    button {
+      margin-top: 2rem;
+      padding: 0.8rem 1.5rem;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <form id="shootingForm">
+    <h2>Frametrack – Shooting-Auftrag</h2>
+
+    <label for="name">Name</label>
+    <input type="text" id="name" required>
+
+    <label for="vorname">Vorname</label>
+    <input type="text" id="vorname" required>
+
+    <label for="art">Shooting-Art</label>
+    <select id="art" required>
+      <option value="">Bitte auswählen</option>
+      <option>Standart Portrait</option>
+      <option>Familie Portrait</option>
+      <option>Familie Event</option>
+      <option>Klassen- , Kurs- und Schulevents</option>
+      <option>Business Portrait</option>
+      <option>Business Event</option>
+    </select>
+
+    <label for="optionen">Zubuchbare Optionen (Strg/Cmd für Mehrfachwahl)</label>
+    <select id="optionen">
+        <option value="" disabled selected>Bitte auswählen</option>
+      <option>alle Bilder</option>
+      <option>Retusche</option>
+      <option>zusätzliche Person</option>
+      <option>Kommerzielle Nutzung</option>
+    </select>
+
+    <label for="ort">Shooting-Ort</label>
+    <input type="text" id="ort">
+
+    <label for="datum">Shooting-Datum</label>
+    <input type="date" id="datum">
+
+    <label for="preis">Preis (€)</label>
+    <input type="number" id="preis">
+
+    <div class="checkbox-container">
+      <input type="checkbox" id="abrechenbar">
+      <label for="abrechenbar">Abrechenbar</label>
+    </div>
+
+    <label>Rechnungsanschrift</label>
+    <div class="row">
+      <div><input type="text" id="strasse" placeholder="Straße"></div>
+      <div><input type="text" id="hausnr" placeholder="Hausnummer"></div>
+    </div>
+    <div class="row">
+      <div><input type="text" id="plz" placeholder="PLZ"></div>
+      <div><input type="text" id="ortAdresse" placeholder="Ort"></div>
+    </div>
+
+    <label for="telefon">Telefonnummer</label>
+    <input type="tel" id="telefon">
+
+    <label for="mail">E-Mail</label>
+    <input type="email" id="mail">
+
+    <label for="bemerkung">Bemerkung</label>
+    <textarea id="bemerkung" rows="2"></textarea>
+
+    <div class="comments">
+      <label>Kommentare</label>
+      <div id="kommentarContainer">
+        <textarea class="kommentar" rows="2" placeholder="Kommentar hinzufügen"></textarea>
+      </div>
+      <button type="button" onclick="addKommentar()">+ Kommentar hinzufügen</button>
+    </div>
+
+    <button type="button" onclick="generatePDF()">PDF erstellen</button>
+  </form>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    function addKommentar() {
+      const container = document.getElementById("kommentarContainer");
+      const textarea = document.createElement("textarea");
+      textarea.className = "kommentar";
+      textarea.rows = 2;
+      textarea.placeholder = "Kommentar hinzufügen";
+      container.appendChild(textarea);
+    }
+
+    async function generatePDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      // Logo einfügen (hier Beispiel-URL)
+    const logoImg = new Image();
+    logoImg.src = "LPCoverblack.png"; // <- hier DEIN Logo rein
+    await new Promise(resolve => {
+      logoImg.onload = () => {
+        const aspectRatio = logoImg.width / logoImg.height;
+        const width = 40; // Desired width
+        const height = width / aspectRatio; // Maintain aspect ratio
+        doc.addImage(logoImg, "PNG", 150, 5, width, height); // Adjusted Y position to 5
+        resolve();
+      };
+      });
+
+      let y = 10;
+      doc.setFontSize(18);
+    doc.setFontSize(22);
+    y += 20; // Add extra spacing
+    doc.text(`Frametrack`, 10, y); y += 15;
+    doc.setFontSize(18); // Reset font size to default
+    // Add a horizontal line under the logo
+    doc.setDrawColor(0, 0, 0); // Set line color to black
+    doc.setLineWidth(0.5); // Set line width
+    doc.line(10, y, 200, y); // Draw line from x=10 to x=200 at current y position
+    y += 10; // Add spacing after the line
+
+      const data = {
+        name: document.getElementById("name").value,
+        vorname: document.getElementById("vorname").value,
+        art: document.getElementById("art").value,
+        optionen: Array.from(document.getElementById("optionen").selectedOptions).map(opt => opt.value),
+        ort: document.getElementById("ort").value,
+        datum: document.getElementById("datum").value,
+        preis: document.getElementById("preis").value,
+        abrechenbar: document.getElementById("abrechenbar").checked ? "Ja" : "Nein",
+        strasse: document.getElementById("strasse").value,
+        hausnr: document.getElementById("hausnr").value,
+        plz: document.getElementById("plz").value,
+        ortAdresse: document.getElementById("ortAdresse").value,
+        telefon: document.getElementById("telefon").value,
+        mail: document.getElementById("mail").value,
+        bemerkung: document.getElementById("bemerkung").value,
+        kommentare: Array.from(document.getElementsByClassName("kommentar")).map(k => k.value).filter(Boolean)
+      };
+
+    y += 20; // Add spacing before starting the content
+    doc.setFontSize(14);
+    doc.setTextColor(40, 40, 40);
+    doc.text("Kundendetails", 10, y); y += 10;
+    doc.setFontSize(12);
+    doc.text(`Name: ${data.vorname} ${data.name}`, 10, y); y += 7;
+    doc.text(`Telefon: ${data.telefon}`, 10, y); y += 7;
+    doc.text(`E-Mail: ${data.mail}`, 10, y); y += 10;
+
+    doc.setFontSize(14);
+    doc.text("Shooting-Details", 10, y); y += 10;
+    doc.setFontSize(12);
+    doc.text(`Shooting-Art: ${data.art}`, 10, y); y += 7;
+    doc.text(`Zubuchbare Optionen: ${data.optionen.join(", ") || "Keine"}`, 10, y); y += 7;
+    doc.text(`Ort: ${data.ort || "Nicht angegeben"}`, 10, y); y += 7;
+    doc.text(`Datum: ${data.datum || "Nicht angegeben"}`, 10, y); y += 7;
+    doc.text(`Preis: ${data.preis ? `${data.preis} €` : "Nicht angegeben"}`, 10, y); y += 7;
+    doc.text(`Abrechenbar: ${data.abrechenbar}`, 10, y); y += 10;
+
+    doc.setFontSize(14);
+    doc.text("Rechnungsanschrift", 10, y); y += 10;
+    doc.setFontSize(12);
+    doc.text(`Adresse: ${data.strasse} ${data.hausnr}, ${data.plz} ${data.ortAdresse}`, 10, y); y += 7;
+
+    if (data.bemerkung) {
+      y += 10;
+      doc.setFontSize(14);
+      doc.text("Bemerkung", 10, y); y += 10;
+      doc.setFontSize(12);
+      doc.text(data.bemerkung, 10, y); y += 10;
+    }
+
+    if (data.kommentare.length > 0) {
+      y += 10;
+      doc.setFontSize(14);
+      doc.text("Kommentare", 10, y); y += 10;
+      doc.setFontSize(12);
+      data.kommentare.forEach((k, i) => {
+        doc.text(`- ${k}`, 12, y); y += 6;
+      });
+    }
+    doc.line(10, 280, 200, 280);
+    doc.setFontSize(9);
+    doc.text("Fotografie Lensperspective", 10, 285);
+    doc.text("Benedikt Feiereis", 10, 291);
+    doc.text("Kontakt: 03046303400", 70, 285);
+    doc.text("fotografie@lensperspective.de", 130, 285);
+    doc.text("www.lensperspective.de", 130, 291);
+
+      doc.save(`Frametrack_${data.vorname}_${data.name}.pdf`);
+    }
+  </script>
+</body>
+</html>
