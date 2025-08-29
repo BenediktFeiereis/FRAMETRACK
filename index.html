@@ -1,139 +1,914 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Frametrack Dashboard</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f0f2f5;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Einsatzprotokoll — Mobil & Desktop</title>
+<style>
+  /* --- iOS-like aesthetic / neutral light theme --- */
+  :root{
+    --bg: #f3f5f7;
+    --card: rgba(255,255,255,0.95);
+    --muted: #6b7280;
+    --accent: #007aff; /* iOS blue */
+    --accent-strong: #005ecb;
+    --danger: #ff3b30;
+    --glass: rgba(255,255,255,0.6);
+    --radius: 14px;
+    --shadow: 0 6px 18px rgba(20,20,30,0.08);
+    --glass-shadow: 0 10px 30px rgba(20,20,30,0.06);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
 
-    header {
-      background-color: #2cb1c2;
-      color: white;
-      padding: 1rem;
-      text-align: center;
-    }
+  html,body{
+    height:100%;
+    margin:0;
+    background:
+      linear-gradient(180deg, rgba(0,122,255,0.04), rgba(0,0,0,0.01)),
+      var(--bg);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    color:#0f1724;
+  }
 
-    main {
-      padding: 2rem;
-      max-width: 900px;
-      margin: auto;
-    }
+  .app {
+    max-width:980px;
+    margin:18px auto;
+    padding:18px;
+  }
 
-    .section {
-      background: white;
-      padding: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      margin-bottom: 2rem;
-    }
+  header {
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:16px;
+  }
 
-    h2 {
-      margin-top: 0;
-    }
+  .logo {
+    width:56px;
+    height:56px;
+    border-radius:14px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-strong));
+    box-shadow: var(--glass-shadow);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-weight:700;
+    font-size:20px;
+  }
 
-    ul {
-      list-style: none;
-      padding: 0;
-    }
+  h1{
+    margin:0;
+    font-size:18px;
+    letter-spacing:-0.2px;
+  }
 
-    li {
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #eee;
-    }
+  .subtitle{ color:var(--muted); font-size:13px; margin-top:4px; }
 
-    .flex {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
+  /* main layout */
+  .container {
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:14px;
+  }
 
-    .flex div {
-      flex: 1 1 45%;
-      margin-bottom: 1rem;
+  @media(min-width:900px){
+    .container{
+      grid-template-columns: 360px 1fr;
+      align-items:start;
     }
+  }
 
-    button {
-      padding: 0.8rem 1.5rem;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
+  /* left panel (filters & new) */
+  .panel {
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:12px;
+    box-shadow:var(--shadow);
+    backdrop-filter: blur(8px) saturate(120%);
+  }
 
-    button:hover {
-      background: #0056b3;
-    }
-  </style>
+  .btn {
+    display:inline-flex;
+    gap:8px;
+    align-items:center;
+    justify-content:center;
+    padding:10px 12px;
+    border-radius:12px;
+    border:0;
+    background:var(--accent);
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow: 0 6px 14px rgba(0,122,255,0.18);
+  }
+  .btn.secondary {
+    background:transparent;
+    color:var(--accent-strong);
+    border:1px solid rgba(0,0,0,0.06);
+    box-shadow:none;
+    font-weight:600;
+  }
+  .btn.ghost {
+    background:transparent;
+    color:var(--muted);
+    border:0;
+    box-shadow:none;
+    padding:6px 8px;
+    font-weight:600;
+  }
+
+  .field {
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:10px;
+  }
+
+  label{ font-size:13px; color:var(--muted); }
+  input[type="text"], input[type="date"], input[type="time"], textarea, select {
+    border:0;
+    padding:12px 10px;
+    border-radius:10px;
+    background:rgba(15,23,36,0.03);
+    outline:none;
+    font-size:15px;
+  }
+  textarea{ min-height:100px; resize:vertical; }
+
+  /* list */
+  .list {
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .card {
+    background:var(--card);
+    border-radius:14px;
+    padding:12px;
+    box-shadow:var(--shadow);
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    justify-content:space-between;
+  }
+
+  .card-left{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+  }
+
+  .type-badge{
+    min-width:38px;
+    height:38px;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-weight:700;
+    font-size:13px;
+  }
+  .type-sim { background: #9b8cff; } /* simulation */
+  .type-real { background: #34c759; } /* real */
+  .type-incident { background: #ff9500; } /* vorfall */
+
+  .meta{
+    display:flex;
+    gap:6px;
+    flex-direction:column;
+  }
+  .meta .top{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    font-weight:700;
+  }
+  .meta .muted { color:var(--muted); font-size:13px; font-weight:500; }
+
+  .card-actions{
+    display:flex;
+    gap:8px;
+  }
+  .small{
+    font-size:13px;
+    padding:8px 10px;
+    border-radius:9px;
+    background:rgba(15,23,36,0.03);
+    border:0;
+    cursor:pointer;
+  }
+
+  .search {
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .search input { padding:10px 12px; border-radius:10px; width:100%; }
+
+  .filters-row {
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  .empty {
+    padding:28px;
+    text-align:center;
+    color:var(--muted);
+    border-radius:12px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.5));
+  }
+
+  /* modal */
+  .modal-backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(6,9,15,0.35);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:60;
+  }
+  .modal {
+    width:min(720px,95%);
+    border-radius:16px;
+    padding:16px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,250,0.98));
+    box-shadow: 0 20px 60px rgba(6,9,15,0.18);
+    max-height:92vh;
+    overflow:auto;
+  }
+  .modal h2{ margin:0 0 6px 0; font-size:17px; }
+  .row { display:flex; gap:10px; }
+  .col { flex:1; min-width:0; }
+
+  /* suggestions dropdown */
+  .suggestions {
+    position:relative;
+  }
+  .suggestions-list{
+    position:absolute;
+    left:0;
+    right:0;
+    top:calc(100% + 8px);
+    z-index:80;
+    background:white;
+    border-radius:10px;
+    box-shadow: 0 10px 30px rgba(6,9,15,0.12);
+    overflow:hidden;
+    max-height:220px;
+  }
+  .suggestion-item{
+    padding:10px;
+    font-size:14px;
+    cursor:pointer;
+    border-bottom:1px solid rgba(0,0,0,0.04);
+  }
+  .suggestion-item:last-child{ border-bottom:0; }
+  .suggestion-item:hover{ background:rgba(0,0,0,0.03); }
+
+  footer.info {
+    margin-top:18px;
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+  }
+
+  /* misc */
+  .muted-small{ color:var(--muted); font-size:13px; }
+  .pill{
+    padding:4px 8px;
+    border-radius:999px;
+    font-size:12px;
+    background:rgba(15,23,36,0.03);
+  }
+</style>
 </head>
 <body>
+<div class="app" id="app">
   <header>
-    <h1>Frametrack Dashboard</h1>
+    <div class="logo">EP</div>
+    <div>
+      <h1>Einsatzprotokoll</h1>
+      <div class="subtitle">Schnell, mobil & offlinefähig — deine Einsätze protokollieren</div>
+    </div>
   </header>
-  <main>
-    <div class="section flex">
-      <div>
-        <h2>Heutiges Datum & Uhrzeit</h2>
-        <p id="datetime">Wird geladen...</p>
+
+  <div class="container">
+    <!-- LEFT: Controls / Filters -->
+    <div class="panel" id="leftPanel">
+      <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;flex-direction:column">
+          <div style="font-weight:800">Alle Protokolle</div>
+          <div class="muted" style="font-size:13px">Filter & Neuer Eintrag</div>
+        </div>
+        <button class="btn" id="newBtn">+ Neuer Einsatz</button>
       </div>
-      <div>
-        <h2>Wetter in Berlin</h2>
-        <p id="weather">Wird geladen...</p>
+
+      <div style="margin-top:8px" class="field">
+        <label>Suche (Einsatznummer, Ort, Stichwort)</label>
+        <div class="search">
+          <input id="searchInput" placeholder="Suchbegriff eingeben..." />
+          <button class="btn secondary" id="clearFiltersBtn">Zurücksetzen</button>
+        </div>
       </div>
+
+      <div class="field">
+        <label>Typ-Filter</label>
+        <div class="filters-row">
+          <button class="btn ghost" data-filter-type="all">Alle</button>
+          <button class="btn ghost" data-filter-type="real">Realeinsatz</button>
+          <button class="btn ghost" data-filter-type="sim">Simulation</button>
+          <button class="btn ghost" data-filter-type="incident">Vorfall</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Datum (von / bis)</label>
+        <div class="row">
+          <div class="col"><input type="date" id="dateFrom" /></div>
+          <div class="col"><input type="date" id="dateTo" /></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Zeige pro Seite</label>
+        <select id="pageSize">
+          <option value="10">10</option>
+          <option value="25" selected>25</option>
+          <option value="50">50</option>
+        </select>
+      </div>
+
+      <div style="margin-top:8px" class="muted-small">
+        Tipp: Auf dem Handy funktioniert das Formular offline (gespeichert im Browser). Sync mit GitHub machst du später indem du die Datei hochlädst.
+      </div>
+
     </div>
 
-    <div class="section">
-      <h2>Letzte 5 Protokolle</h2>
-      <ul id="protokollListe">
-        <li>–</li>
-      </ul>
-    </div>
+    <!-- RIGHT: List -->
+    <div>
+      <div id="listContainer" class="list panel" style="padding:14px 12px;min-height:120px">
+        <!-- items injected here -->
+      </div>
 
-    <div class="section">
-      <h2>Neues Protokoll</h2>
-      <button onclick="location.href='form.html'">Zum Formular</button>
-    </div>
-  </main>
+      <div class="panel" style="margin-top:12px;display:flex;gap:8px;align-items:center;justify-content:space-between">
+        <div>
+          <span class="muted-small">Gesamt: <span id="totalCount">0</span></span>
+        </div>
+        <div>
+          <button class="btn secondary" id="exportBtn">Export (JSON)</button>
+          <button class="btn secondary" id="importBtn">Import (JSON)</button>
+        </div>
+      </div>
 
-  <script>
-    // Datum & Uhrzeit anzeigen
-    function updateDateTime() {
-      const now = new Date();
-      document.getElementById('datetime').innerText = now.toLocaleString('de-DE');
+      <footer class="info">
+        Erstellt für Bene — leichtgewichtiges Einsatzprotokoll. &nbsp;•&nbsp; Lokal gespeichert (localStorage)
+      </footer>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Template -->
+<div id="modalRoot" style="display:none"></div>
+
+<script>
+/* =======================
+   Einsatzprotokoll Web-App
+   - Single HTML file
+   - Speichert in localStorage unter key "einsatz_protocolle_v1"
+   - Ortssuche mit OpenStreetMap Nominatim zur PLZ-Vorschlagsfunktion
+   ======================= */
+
+(() => {
+  // Constants
+  const STORAGE_KEY = 'einsatz_protocolle_v1';
+  const app = document.getElementById('app');
+  const listContainer = document.getElementById('listContainer');
+  const newBtn = document.getElementById('newBtn');
+  const modalRoot = document.getElementById('modalRoot');
+  const searchInput = document.getElementById('searchInput');
+  const totalCountEl = document.getElementById('totalCount');
+  const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+  const filterButtons = document.querySelectorAll('[data-filter-type]');
+  const dateFrom = document.getElementById('dateFrom');
+  const dateTo = document.getElementById('dateTo');
+  const pageSize = document.getElementById('pageSize');
+  const exportBtn = document.getElementById('exportBtn');
+  const importBtn = document.getElementById('importBtn');
+
+  let protocols = loadProtocols();
+  let state = {
+    filterType: 'all',
+    search: '',
+    dateFrom: null,
+    dateTo: null,
+    pageSize: parseInt(pageSize.value),
+  };
+
+  // helpers
+  function uid() {
+    return 'ep_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+  }
+
+  function saveProtocols(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(protocols));
+  }
+
+  function loadProtocols(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){
+      console.error('Fehler beim Laden der Protokolle:', e);
+      return [];
+    }
+  }
+
+  function formatDate(d){
+    if(!d) return '';
+    const dt = new Date(d);
+    if(isNaN(dt)) return d;
+    return dt.toLocaleDateString('de-DE');
+  }
+
+  function formatTime(t){
+    return t || '';
+  }
+
+  function mapTypeBadge(type){
+    if(type === 'real') return {class:'type-real', label:'RE'};
+    if(type === 'sim') return {class:'type-sim', label:'SIM'};
+    return {class:'type-incident', label:'V'};
+  }
+
+  // render list
+  function renderList(){
+    listContainer.innerHTML = '';
+    const filtered = protocols
+      .filter(p => {
+        // type
+        if(state.filterType !== 'all' && p.type !== state.filterType) return false;
+        // date range
+        if(state.dateFrom){
+          const from = new Date(state.dateFrom);
+          const pd = new Date(p.einsatzdatum);
+          if(pd < from) return false;
+        }
+        if(state.dateTo){
+          const to = new Date(state.dateTo);
+          const pd = new Date(p.einsatzdatum);
+          // include day
+          to.setHours(23,59,59,999);
+          if(pd > to) return false;
+        }
+        // search
+        if(state.search){
+          const s = state.search.toLowerCase();
+          const fields = [p.einsatznummer, p.einsatzort, p.einsatzstichwort, p.waswarlos].join(' ').toLowerCase();
+          if(!fields.includes(s)) return false;
+        }
+        return true;
+      })
+      .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    totalCountEl.textContent = filtered.length;
+
+    if(filtered.length === 0){
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Keine Einträge</div><div>Lege über "+ Neuer Einsatz" einen ersten Eintrag an.</div>`;
+      listContainer.appendChild(empty);
+      return;
     }
 
-    updateDateTime();
-    setInterval(updateDateTime, 1000);
+    filtered.slice(0, state.pageSize).forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'card';
 
-    // Wetter laden – API Aufruf simulieren
-    async function loadWeather() {
-      try {
-        const res = await fetch('https://wttr.in/Berlin?format=%C+%t');
-        const text = await res.text();
-        document.getElementById('weather').innerText = text;
-      } catch (err) {
-        document.getElementById('weather').innerText = 'Fehler beim Laden des Wetters';
-      }
-    }
+      const left = document.createElement('div');
+      left.className = 'card-left';
 
-    loadWeather();
+      const badgeInfo = mapTypeBadge(p.type);
+      const badge = document.createElement('div');
+      badge.className = 'type-badge ' + badgeInfo.class;
+      badge.textContent = badgeInfo.label;
 
-    // Letzte Protokolle aus LocalStorage simulieren
-    const protokolle = JSON.parse(localStorage.getItem('protokolle')) || [];
-    const liste = document.getElementById('protokollListe');
-    liste.innerHTML = '';
-    protokolle.slice(-5).reverse().forEach(p => {
-      const li = document.createElement('li');
-      li.textContent = `${p.datum}: ${p.name}`;
-      liste.appendChild(li);
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+
+      const top = document.createElement('div');
+      top.className = 'top';
+      top.innerHTML = `<div>${p.einsatznummer || '<span style="color:var(--muted)">—</span>'}</div><div class="muted" style="font-weight:600">${p.einsatzstichwort || ''}</div>`;
+
+      const second = document.createElement('div');
+      second.className = 'muted';
+      second.innerHTML = `${formatDate(p.einsatzdatum)} ${p.einsatzzeit ? '• ' + p.einsatzzeit : ''} • ${p.einsatzort || 'Ort nicht angegeben'}${p.plz ? ' • ' + p.plz : ''}`;
+
+      const excerpt = document.createElement('div');
+      excerpt.style.marginTop = '6px';
+      excerpt.style.fontSize = '14px';
+      excerpt.style.color = '#0f1724';
+      excerpt.textContent = p.waswarlos ? (p.waswarlos.length > 120 ? p.waswarlos.slice(0,120) + '…' : p.waswarlos) : '';
+
+      meta.appendChild(top);
+      meta.appendChild(second);
+      meta.appendChild(excerpt);
+
+      left.appendChild(badge);
+      left.appendChild(meta);
+
+      const actions = document.createElement('div');
+      actions.className = 'card-actions';
+
+      const viewBtn = document.createElement('button');
+      viewBtn.className = 'small';
+      viewBtn.innerHTML = 'Ansehen';
+      viewBtn.onclick = () => openModal('view', p.id);
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'small';
+      editBtn.innerHTML = 'Bearbeiten';
+      editBtn.onclick = () => openModal('edit', p.id);
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'small';
+      delBtn.style.color = 'var(--danger)';
+      delBtn.innerHTML = 'Löschen';
+      delBtn.onclick = () => {
+        if(confirm('Eintrag wirklich löschen?')) {
+          protocols = protocols.filter(x => x.id !== p.id);
+          saveProtocols();
+          renderList();
+        }
+      };
+
+      actions.appendChild(viewBtn);
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+
+      card.appendChild(left);
+      card.appendChild(actions);
+      listContainer.appendChild(card);
     });
-  </script>
+  }
+
+  // modal handling (create/edit/view)
+  function openModal(mode='create', id = null){
+    const cover = document.createElement('div');
+    cover.className = 'modal-backdrop';
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+
+    // header
+    const title = document.createElement('h2');
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'btn ghost';
+    closeBtn.style.float = 'right';
+    closeBtn.textContent = 'Schließen';
+    closeBtn.onclick = () => { modalRoot.innerHTML = ''; modalRoot.style.display = 'none'; };
+
+    modal.appendChild(closeBtn);
+
+    if(mode === 'view'){
+      const p = protocols.find(x => x.id === id);
+      title.textContent = `Protokoll ansehen — ${p.einsatznummer || ''}`;
+      modal.appendChild(title);
+
+      const metaHtml = document.createElement('div');
+      metaHtml.style.margin = '10px 0 16px 0';
+      metaHtml.innerHTML = `
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="pill">${p.type === 'sim' ? 'Simulation' : p.type === 'real' ? 'Realeinsatz' : 'Vorfall'}</div>
+          <div class="pill">${formatDate(p.einsatzdatum)} ${p.einsatzzeit ? '• ' + p.einsatzzeit : ''}</div>
+          <div class="pill">${p.einsatzort || '—'}</div>
+          <div class="pill">${p.plz || '—'}</div>
+        </div>
+      `;
+      modal.appendChild(metaHtml);
+
+      const fields = document.createElement('div');
+      fields.innerHTML = `
+        <div style="margin-bottom:10px"><strong>Einsatznummer</strong><div class="muted-small">${p.einsatznummer || '—'}</div></div>
+        <div style="margin-bottom:10px"><strong>Stichwort</strong><div class="muted-small">${p.einsatzstichwort || '—'}</div></div>
+        <div style="margin-bottom:10px"><strong>Was war los</strong><div style="white-space:pre-wrap;margin-top:6px">${(p.waswarlos || '—')}</div></div>
+        <div style="margin-top:10px" class="muted-small">Erstellt: ${new Date(p.createdAt).toLocaleString()}</div>
+      `;
+      modal.appendChild(fields);
+
+      // edit & delete quick actions
+      const footer = document.createElement('div');
+      footer.style.display = 'flex';
+      footer.style.gap = '8px';
+      footer.style.marginTop = '14px';
+      footer.style.justifyContent = 'flex-end';
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'btn';
+      editBtn.textContent = 'Bearbeiten';
+      editBtn.onclick = () => { modalRoot.innerHTML = ''; modalRoot.style.display = 'none'; openModal('edit', p.id); };
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn secondary';
+      delBtn.style.color = 'var(--danger)';
+      delBtn.textContent = 'Löschen';
+      delBtn.onclick = () => {
+        if(confirm('Eintrag wirklich löschen?')) {
+          protocols = protocols.filter(x => x.id !== p.id);
+          saveProtocols();
+          modalRoot.innerHTML = '';
+          modalRoot.style.display = 'none';
+          renderList();
+        }
+      };
+
+      footer.appendChild(editBtn);
+      footer.appendChild(delBtn);
+      modal.appendChild(footer);
+
+    } else {
+      const isEdit = mode === 'edit';
+      const p = isEdit ? protocols.find(x => x.id === id) : null;
+      title.textContent = isEdit ? `Protokoll bearbeiten` : `Neues Protokoll anlegen`;
+      modal.appendChild(title);
+
+      const form = document.createElement('form');
+      form.style.marginTop = '8px';
+      form.onsubmit = (e) => {
+        e.preventDefault();
+        // gather values
+        const formData = new FormData(form);
+        const entry = {
+          id: isEdit ? p.id : uid(),
+          type: formData.get('type'),
+          einsatznummer: formData.get('einsatznummer')?.trim(),
+          einsatzdatum: formData.get('einsatzdatum'),
+          einsatzzeit: formData.get('einsatzzeit'),
+          einsatzort: formData.get('einsatzort')?.trim(),
+          plz: formData.get('plz')?.trim(),
+          einsatzstichwort: formData.get('einsatzstichwort')?.trim(),
+          waswarlos: formData.get('waswarlos')?.trim(),
+          createdAt: isEdit ? p.createdAt : (new Date()).toISOString(),
+        };
+        if(isEdit){
+          protocols = protocols.map(x => x.id === p.id ? Object.assign({}, x, entry) : x);
+        } else {
+          protocols.unshift(entry);
+        }
+        saveProtocols();
+        modalRoot.innerHTML = '';
+        modalRoot.style.display = 'none';
+        renderList();
+      };
+
+      // build form HTML (includes suggestions box for ort)
+      form.innerHTML = `
+        <div class="field">
+          <label>Art des Protokolls</label>
+          <select name="type" id="fld-type" required>
+            <option value="real">Realeinsatz</option>
+            <option value="sim">Simulation</option>
+            <option value="incident">Vorfall</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <div class="col field">
+            <label>Einsatznummer</label>
+            <input name="einsatznummer" placeholder="z. B. 2025-0012" />
+          </div>
+          <div class="col field">
+            <label>Einsatzstichwort</label>
+            <input name="einsatzstichwort" placeholder="z. B. Herzstillstand" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col field">
+            <label>Einsatzdatum</label>
+            <input type="date" name="einsatzdatum" required />
+          </div>
+          <div class="col field">
+            <label>Einsatzzeit</label>
+            <input type="time" name="einsatzzeit" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col field suggestions">
+            <label>Einsatzort (Tippe, PLZ-Vorschläge erscheinen)</label>
+            <input type="text" name="einsatzort" id="fld-ort" autocomplete="off" placeholder="Stadt, Straße oder Ortsteil" />
+            <div id="suggestions" class="suggestions-list" style="display:none"></div>
+          </div>
+          <div style="width:120px" class="field">
+            <label>PLZ</label>
+            <input type="text" name="plz" id="fld-plz" placeholder="PLZ" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Was war los</label>
+          <textarea name="waswarlos" placeholder="Kurz protokollieren..."></textarea>
+        </div>
+
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+          <button type="button" class="btn secondary" id="cancelForm">Abbrechen</button>
+          <button type="submit" class="btn">${isEdit ? 'Speichern' : 'Anlegen'}</button>
+        </div>
+      `;
+
+      modal.appendChild(form);
+
+      // attach values if editing
+      if(isEdit && p){
+        form.querySelector('[name="type"]').value = p.type;
+        form.querySelector('[name="einsatznummer"]').value = p.einsatznummer || '';
+        form.querySelector('[name="einsatzstichwort"]').value = p.einsatzstichwort || '';
+        form.querySelector('[name="einsatzdatum"]').value = p.einsatzdatum || '';
+        form.querySelector('[name="einsatzzeit"]').value = p.einsatzzeit || '';
+        form.querySelector('[name="einsatzort"]').value = p.einsatzort || '';
+        form.querySelector('[name="plz"]').value = p.plz || '';
+        form.querySelector('[name="waswarlos"]').value = p.waswarlos || '';
+      } else {
+        // when creating, ask for the type first via prompt-like small selector (we already have the select)
+        // optional: prefill date with today
+        const dateField = form.querySelector('[name="einsatzdatum"]');
+        if(dateField && !dateField.value) dateField.value = new Date().toISOString().slice(0,10);
+      }
+
+      // suggestions logic (Nominatim) for ort -> show plz suggestions
+      const ortInput = form.querySelector('#fld-ort');
+      const suggestionsBox = form.querySelector('#suggestions');
+      const plzInput = form.querySelector('#fld-plz');
+
+      let suggTimer = 0;
+      let lastQuery = '';
+
+      ortInput.addEventListener('input', (e) => {
+        const q = e.target.value.trim();
+        stateSuggestQuery(q);
+      });
+
+      ortInput.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape') { suggestionsBox.style.display='none'; }
+      });
+
+      document.addEventListener('click', (ev) => {
+        if(!form.contains(ev.target)) suggestionsBox.style.display = 'none';
+      });
+
+      function stateSuggestQuery(q){
+        if(suggTimer) clearTimeout(suggTimer);
+        if(!q){
+          suggestionsBox.style.display = 'none';
+          return;
+        }
+        // debounce
+        suggTimer = setTimeout(() => fetchSuggestions(q), 400);
+      }
+
+      async function fetchSuggestions(q){
+        lastQuery = q;
+        try{
+          // Nominatim OpenStreetMap search (CORS-friendly)
+          const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&countrycodes=de&q=${encodeURIComponent(q)}`;
+          const res = await fetch(url, {headers:{'Accept-Language':'de'}});
+          if(!res.ok) throw new Error('FEHLER');
+          const items = await res.json();
+          // map to suggestion items containing display name and postcode if available
+          const results = items.map(it => {
+            const addr = it.address || {};
+            return {
+              name: it.display_name,
+              postcode: addr.postcode || '',
+              city: addr.city || addr.town || addr.village || addr.hamlet || '',
+              state: addr.state || '',
+            };
+          }).filter(Boolean);
+          renderSuggestions(results);
+        }catch(err){
+          console.warn('Ortssuche fehlgeschlagen', err);
+          suggestionsBox.style.display='none';
+        }
+      }
+
+      function renderSuggestions(items){
+        if(!items || items.length === 0){ suggestionsBox.style.display='none'; return; }
+        suggestionsBox.innerHTML = '';
+        items.forEach(it => {
+          const el = document.createElement('div');
+          el.className = 'suggestion-item';
+          el.innerHTML = `<div style="font-weight:700">${escapeHtml(it.name.split(',')[0])}</div><div class="muted-small">${escapeHtml(it.city)} ${it.postcode ? ' • ' + escapeHtml(it.postcode) : ''}</div>`;
+          el.onclick = () => {
+            ortInput.value = it.name.split(',')[0];
+            if(it.postcode) plzInput.value = it.postcode;
+            suggestionsBox.style.display = 'none';
+          };
+          suggestionsBox.appendChild(el);
+        });
+        suggestionsBox.style.display = 'block';
+      }
+
+      function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+      // cancel
+      form.querySelector('#cancelForm').addEventListener('click', () => { modalRoot.innerHTML = ''; modalRoot.style.display = 'none'; });
+
+      // end form handling
+    }
+
+    cover.appendChild(modal);
+    modalRoot.innerHTML = '';
+    modalRoot.appendChild(cover);
+    modalRoot.style.display = 'block';
+  }
+
+  // event wiring
+  newBtn.addEventListener('click', () => openModal('create'));
+
+  searchInput.addEventListener('input', (e) => {
+    state.search = e.target.value.trim();
+    renderList();
+  });
+
+  clearFiltersBtn.addEventListener('click', () => {
+    state.filterType = 'all';
+    state.search = '';
+    state.dateFrom = null;
+    state.dateTo = null;
+    dateFrom.value = '';
+    dateTo.value = '';
+    searchInput.value = '';
+    document.querySelectorAll('[data-filter-type]').forEach(b => b.classList.remove('active'));
+    renderList();
+  });
+
+  filterButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-filter-type]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.filterType = btn.dataset.filterType;
+      renderList();
+    });
+  });
+
+  dateFrom.addEventListener('change', (e) => { state.dateFrom = e.target.value || null; renderList(); });
+  dateTo.addEventListener('change', (e) => { state.dateTo = e.target.value || null; renderList(); });
+  pageSize.addEventListener('change', (e) => { state.pageSize = parseInt(e.target.value); renderList(); });
+
+  exportBtn.addEventListener('click', () => {
+    const data = JSON.stringify(protocols, null, 2);
+    const blob = new Blob([data], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'einsatzprotokolle_export_' + (new Date()).toISOString().slice(0,10) + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  importBtn.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try{
+          const data = JSON.parse(ev.target.result);
+          if(!Array.isArray(data)) throw new Error('Ungültiges Format');
+          // simple merge: keep existing and add new unique ones by id
+          const existingIds = new Set(protocols.map(p => p.id));
+          const toAdd = data.filter(p => p && p.id && !existingIds.has(p.id));
+          protocols = [...toAdd, ...protocols];
+          saveProtocols();
+          renderList();
+          alert('Import erfolgreich. Hinzugefügt: ' + toAdd.length);
+        }catch(err){
+          alert('Import fehlgeschlagen: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  });
+
+  // initial render
+  renderList();
+
+  // expose small debug helper on window for power-user
+  window.__EP = {
+    getAll: () => protocols,
+    clearAll: () => { if(confirm('Alle Einträge löschen?')) { protocols = []; saveProtocols(); renderList(); } }
+  };
+
+})();
+</script>
 </body>
 </html>
